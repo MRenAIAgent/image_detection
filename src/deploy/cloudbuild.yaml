@@ -1,0 +1,21 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull us-central1-docker.pkg.dev/$PROJECT_ID/image-recognition/image-recognition-api:latest || exit 0
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --network
+      - cloudbuild
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/image-recognition/image-recognition-api:latest
+      - --cache-from
+      - us-central1-docker.pkg.dev/$PROJECT_ID/image-recognition/image-recognition-api:latest
+      - -f
+      - deploy/Dockerfile
+      - .
+
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/image-recognition/image-recognition-api:latest 

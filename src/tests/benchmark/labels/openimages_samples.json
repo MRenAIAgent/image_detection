@@ -1,0 +1,66 @@
+{
+  "dataset": "openimages_samples",
+  "description": "Ground truth labels for openimages_samples",
+  "images": {
+    "openimg_dog_frisbee.jpg": {
+      "objects": [
+        {
+          "class": "dog",
+          "bbox": [
+            98,
+            130,
+            542,
+            463
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "frisbee",
+          "bbox": [
+            349,
+            44,
+            427,
+            122
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 2
+    },
+    "openimg_traffic.jpg": {
+      "objects": [
+        {
+          "class": "car",
+          "bbox": [
+            0,
+            310,
+            175,
+            480
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "car",
+          "bbox": [
+            175,
+            295,
+            390,
+            480
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "traffic light",
+          "bbox": [
+            287,
+            85,
+            318,
+            175
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 3
+    }
+  }
+}

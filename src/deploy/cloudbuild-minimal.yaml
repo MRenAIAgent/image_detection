@@ -1,0 +1,21 @@
+# Minimal Cloud Build configuration for testing
+steps:
+  # Step 1: Test basic Docker build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/image-recognition-api:$COMMIT_SHA'
+      - '--file'
+      - 'Dockerfile.client'
+      - '.'
+    timeout: '1200s'
+
+# Build configuration
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 50
+  logging: 'CLOUD_LOGGING_ONLY'
+  
+# Timeout for the entire build
+timeout: '2400s' 

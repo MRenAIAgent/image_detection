@@ -1,0 +1,56 @@
+{
+  "dataset": "pascal_voc_samples",
+  "description": "Ground truth labels for pascal_voc_samples",
+  "images": {
+    "voc_2007_000027.jpg": {
+      "objects": [
+        {
+          "class": "person",
+          "bbox": [
+            174,
+            101,
+            349,
+            351
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 1
+    },
+    "voc_airplane.jpg": {
+      "objects": [
+        {
+          "class": "bus",
+          "bbox": [
+            50,
+            116,
+            563,
+            416
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "person",
+          "bbox": [
+            211,
+            65,
+            274,
+            197
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "person",
+          "bbox": [
+            234,
+            80,
+            282,
+            170
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 3
+    }
+  }
+}

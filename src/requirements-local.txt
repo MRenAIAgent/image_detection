@@ -1,0 +1,38 @@
+# Local development requirements for Mac
+# Simplified version without Triton dependencies
+
+# Core ML and image processing
+ultralytics>=8.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# FastAPI and web framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+python-multipart>=0.0.6
+
+# Async and HTTP
+httpx>=0.25.0
+aiofiles>=23.0.0
+
+# Configuration and utilities
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# Monitoring and logging
+prometheus-client>=0.19.0
+structlog>=23.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+requests>=2.31.0
+
+# Additional utilities
+tqdm>=4.64.0
+pyyaml>=6.0.0
+matplotlib>=3.7.0 

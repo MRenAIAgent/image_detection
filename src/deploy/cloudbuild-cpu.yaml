@@ -1,0 +1,171 @@
+# Cloud Build configuration for CPU-only Image Recognition API deployment
+steps:
+  # Step 1: Build the FastAPI client Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/image-recognition-api:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/image-recognition-api:latest'
+      - '-f'
+      - 'Dockerfile.client'
+      - '--target'
+      - 'production'
+      - '.'
+    
+  # Step 2: Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/image-recognition-api:$COMMIT_SHA'
+      
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/image-recognition-api:latest'
+      
+  # Step 3: Setup model (download and convert YOLOv8n for CPU optimization)
+  - name: 'python:3.11-slim'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        apt-get update && apt-get install -y curl libgl1-mesa-glx libglib2.0-0
+        pip install ultralytics torch onnx opencv-python pillow numpy onnxruntime
+        python setup_model.py --model-dir models --optimize-cpu
+        ls -la models/model_repository/yolov8n/1/
+    
+  # Step 4: Create Cloud Storage bucket for models (if not exists)
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - 'mb'
+      - '-p'
+      - '$PROJECT_ID'
+      - 'gs://$PROJECT_ID-image-recognition-models-cpu'
+    allowFailure: true
+    
+  # Step 5: Upload model repository to Cloud Storage
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - '-m'
+      - 'rsync'
+      - '-r'
+      - '-d'
+      - 'models/model_repository'
+      - 'gs://$PROJECT_ID-image-recognition-models-cpu/model_repository'
+    
+  # Step 6: Deploy Triton server to Cloud Run (CPU-optimized)
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'triton-server-cpu-$_HASH'
+      - '--image=nvcr.io/nvidia/tritonserver:23.10-py3'
+      - '--platform=managed'
+      - '--region=$_REGION'
+      - '--allow-unauthenticated'
+      - '--port=8000'
+      - '--memory=8Gi'
+      - '--cpu=4'
+      - '--min-instances=1'
+      - '--max-instances=10'
+      - '--timeout=3600'
+      - '--concurrency=100'
+      - '--set-env-vars=NVIDIA_VISIBLE_DEVICES='
+      - '--command=tritonserver'
+      - '--args=--model-repository=gs://$PROJECT_ID-image-recognition-models-cpu/model_repository,--allow-http=true,--allow-grpc=true,--allow-metrics=true,--strict-model-config=false,--backend-config=onnxruntime,default-max-batch-size=16,--backend-config=onnxruntime,optimization-level=all'
+       
+  # Step 7: Get Triton service URL
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TRITON_URL=$(gcloud run services describe triton-server-cpu-$_HASH --region=$_REGION --format="value(status.url)")
+        echo "CPU Triton URL: $TRITON_URL"
+        # Store URL for next step
+        echo "$TRITON_URL" > /workspace/triton_cpu_url.txt
+      
+  # Step 8: Deploy FastAPI client to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        TRITON_URL=$(cat /workspace/triton_cpu_url.txt)
+        TRITON_GRPC_URL=${TRITON_URL/https:/}:443
+        echo "Deploying CPU API with Triton URL: $TRITON_GRPC_URL"
+        
+        gcloud run deploy image-recognition-api-cpu-$_HASH \
+          --image=gcr.io/$PROJECT_ID/image-recognition-api:$COMMIT_SHA \
+          --platform=managed \
+          --region=$_REGION \
+          --allow-unauthenticated \
+          --port=8080 \
+          --memory=4Gi \
+          --cpu=2 \
+          --min-instances=0 \
+          --max-instances=20 \
+          --timeout=300 \
+          --concurrency=80 \
+          --set-env-vars="TRITON_URL=$TRITON_GRPC_URL,LOG_LEVEL=INFO,MAX_BATCH_SIZE=16,CONFIDENCE_THRESHOLD=0.5,BATCH_TIMEOUT=0.1,MAX_QUEUE_SIZE=100,ENVIRONMENT=production,ENABLE_GPU=false"
+       
+  # Step 9: Create Cloud Scheduler job for health checks
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Delete existing job if it exists
+        gcloud scheduler jobs delete image-recognition-health-check-cpu-$_HASH --location=$_REGION --quiet || true
+        
+        # Get API URL
+        API_URL=$(gcloud run services describe image-recognition-api-cpu-$_HASH --region=$_REGION --format="value(status.url)")
+        
+        # Create new health check job
+        gcloud scheduler jobs create http image-recognition-health-check-cpu-$_HASH \
+          --schedule="*/5 * * * *" \
+          --uri="$API_URL/health" \
+          --http-method=GET \
+          --location=$_REGION \
+          --description="Health check for CPU Image Recognition API"
+          
+  # Step 10: Output deployment information
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== CPU DEPLOYMENT COMPLETED ==="
+        API_URL=$(gcloud run services describe image-recognition-api-cpu-$_HASH --region=$_REGION --format="value(status.url)")
+        TRITON_URL=$(gcloud run services describe triton-server-cpu-$_HASH --region=$_REGION --format="value(status.url)")
+        
+        echo "CPU API URL: $API_URL"
+        echo "CPU API Docs: $API_URL/docs"
+        echo "CPU Triton URL: $TRITON_URL"
+        echo "Health Check: $API_URL/health"
+        echo "Model Info: $API_URL/model/info"
+        
+        # Save URLs to build artifacts
+        echo "{\"api_url\": \"$API_URL\", \"triton_url\": \"$TRITON_URL\", \"deployment_type\": \"cpu\"}" > /workspace/deployment_urls_cpu.json
+
+# Build configuration
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 100
+  
+# Timeout for the entire build
+timeout: '3600s'
+
+# Substitutions
+substitutions:
+  _REGION: 'us-central1'
+  _HASH: '${COMMIT_SHA:0:7}'
+  
+# Artifacts
+artifacts:
+  objects:
+    location: 'gs://$PROJECT_ID-build-artifacts'
+    paths:
+      - '/workspace/deployment_urls_cpu.json' 

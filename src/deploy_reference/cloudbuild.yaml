@@ -1,0 +1,32 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:latest || exit 0
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --network
+      - cloudbuild
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:${_COMMIT_ID}
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:$BUILD_ID
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:latest
+      - --cache-from
+      - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:latest
+      - --build-arg
+      - COMMIT_ID=${_COMMIT_ID}
+      - -f
+      - deploy/Dockerfile
+      - .
+
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:${_COMMIT_ID}
+  - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:$BUILD_ID
+  - us-central1-docker.pkg.dev/$PROJECT_ID/copilot/copilot-language-server:latest
+
+substitutions:
+  _COMMIT_ID: 'COMMIT-TEST-ID'

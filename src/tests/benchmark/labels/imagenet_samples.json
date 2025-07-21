@@ -1,0 +1,41 @@
+{
+  "dataset": "imagenet_samples",
+  "description": "Ground truth labels for imagenet_samples",
+  "images": {
+    "imagenet_dog.jpg": {
+      "objects": [
+        {
+          "class": "person",
+          "bbox": [
+            750,
+            43,
+            1148,
+            704
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "person",
+          "bbox": [
+            114,
+            195,
+            381,
+            600
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "tie",
+          "bbox": [
+            297,
+            264,
+            342,
+            372
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 3
+    }
+  }
+}

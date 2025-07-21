@@ -1,0 +1,131 @@
+{
+  "dataset": "coco_samples",
+  "description": "Ground truth labels for coco_samples",
+  "images": {
+    "coco_000000000139.jpg": {
+      "objects": [
+        {
+          "class": "person",
+          "bbox": [
+            411,
+            100,
+            515,
+            297
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "person",
+          "bbox": [
+            297,
+            89,
+            383,
+            281
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 2
+    },
+    "coco_000000000285.jpg": {
+      "objects": [
+        {
+          "class": "cat",
+          "bbox": [
+            13,
+            171,
+            313,
+            507
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 1
+    },
+    "coco_000000000632.jpg": {
+      "objects": [
+        {
+          "class": "person",
+          "bbox": [
+            175,
+            55,
+            297,
+            343
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "snowboard",
+          "bbox": [
+            134,
+            225,
+            296,
+            285
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 2
+    },
+    "coco_000000000724.jpg": {
+      "objects": [
+        {
+          "class": "person",
+          "bbox": [
+            258,
+            41,
+            389,
+            450
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "remote",
+          "bbox": [
+            233,
+            177,
+            270,
+            196
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "couch",
+          "bbox": [
+            0,
+            268,
+            640,
+            480
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 3
+    },
+    "coco_000000001000.jpg": {
+      "objects": [
+        {
+          "class": "bicycle",
+          "bbox": [
+            51,
+            235,
+            602,
+            473
+          ],
+          "confidence": 1.0
+        },
+        {
+          "class": "person",
+          "bbox": [
+            189,
+            126,
+            293,
+            324
+          ],
+          "confidence": 1.0
+        }
+      ],
+      "total_objects": 2
+    }
+  }
+}
