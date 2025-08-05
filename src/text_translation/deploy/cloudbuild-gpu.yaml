@@ -1,0 +1,31 @@
+steps:
+  # Step 1: Pull existing image for cache
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api-gpu:latest || exit 0
+
+  # Step 2: Build Docker image with GPU support
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --network
+      - cloudbuild
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api-gpu:latest
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api-gpu:$COMMIT_SHA
+      - --cache-from
+      - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api-gpu:latest
+      - -f
+      - deploy/Dockerfile.gpu
+      - .
+
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api-gpu:latest
+  - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api-gpu:$COMMIT_SHA
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: '100'

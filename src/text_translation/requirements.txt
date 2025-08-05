@@ -1,0 +1,39 @@
+# FastAPI and web framework dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Transformers and NLLB model support
+transformers==4.35.2
+torch==2.1.1
+sentencepiece==0.1.99
+protobuf==4.25.1
+
+# Quantization support (optional)
+ctranslate2==3.24.0
+accelerate==0.24.1
+
+# Text processing utilities
+langdetect==1.0.9
+sacremoses==0.1.1
+
+# Async and HTTP clients
+httpx==0.25.2
+aiofiles==23.2.1
+
+# Monitoring and logging
+prometheus-client==0.19.0
+structlog==23.2.0
+
+# Configuration and utilities
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Testing (development)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+requests==2.31.0
+
+# Memory optimization
+psutil==5.9.6

@@ -1,0 +1,71 @@
+FROM nvidia/cuda:11.8-devel-ubuntu20.04 AS base
+
+# Install Python and system dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        python3.11 \
+        python3.11-dev \
+        python3-pip \
+        apt-transport-https \
+        ca-certificates \
+        gnupg \
+        curl \
+        g++ \
+        build-essential \
+        git \
+        && \
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
+    apt-get update && \
+    apt-get install -y google-cloud-sdk && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for python
+RUN ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python
+
+FROM base AS dependencies
+
+WORKDIR /app
+
+# Copy requirements first for better layer caching
+COPY requirements.txt .
+
+# Install PyTorch with CUDA support
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 && \
+    pip3 install --no-cache-dir -r requirements.txt
+
+FROM dependencies AS runtime
+
+# Set environment variables
+ENV PYTHONPATH=/app \
+    DEBUG=0 \
+    PYTHONUNBUFFERED=1 \
+    TOKENIZERS_PARALLELISM=false \
+    CUDA_VISIBLE_DEVICES=0
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p models logs
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose the port the app runs on
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Command to run the application
+WORKDIR /app
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8080 --workers 1"]

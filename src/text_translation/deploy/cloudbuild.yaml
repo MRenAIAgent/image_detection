@@ -1,0 +1,28 @@
+steps:
+  # Step 1: Pull existing image for cache
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api:latest || exit 0
+
+  # Step 2: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --network
+      - cloudbuild
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api:latest
+      - --cache-from
+      - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api:latest
+      - -f
+      - deploy/Dockerfile
+      - .
+
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/text-translation/text-translation-api:latest
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: '100'

@@ -1,0 +1,8 @@
+# Text Translation API Deployment URLs (CPU)
+# Generated on Mon Aug  4 21:52:53 PDT 2025
+
+SERVICE_URL=https://text-translation-api-4ptphx4u6q-uc.a.run.app
+API_DOCS=https://text-translation-api-4ptphx4u6q-uc.a.run.app/docs
+HEALTH_CHECK=https://text-translation-api-4ptphx4u6q-uc.a.run.app/health
+SUPPORTED_LANGUAGES=https://text-translation-api-4ptphx4u6q-uc.a.run.app/languages
+MODEL_INFO=https://text-translation-api-4ptphx4u6q-uc.a.run.app/model/info
